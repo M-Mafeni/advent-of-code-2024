@@ -14,6 +14,21 @@ function parseLists(text: string): [number[], number[]] {
   return [list1, list2];
 }
 
+function calcSimilarityScore(line1: number[], line2: number[]): number {
+  const freq = line2.reduce((acc, val) => {
+    if (acc[val]) {
+      return { ...acc, [String(val)]: acc[val] + 1 };
+    } else {
+      return { ...acc, [String(val)]: 1 };
+    }
+  }, {} as Record<number, number>);
+
+  return line1.reduce((acc, val) => {
+    const multiplier = freq[val] || 0;
+    return acc += val * multiplier;
+  }, 0);
+}
+
 // Learn more at https://docs.deno.com/runtime/manual/examples/module_metadata#concepts
 if (import.meta.main) {
   const text = await Deno.readTextFile("input.txt");
@@ -26,4 +41,5 @@ if (import.meta.main) {
     sum += diff;
   }
   console.log(sum);
+  console.log("part 2", calcSimilarityScore(line1, line2));
 }

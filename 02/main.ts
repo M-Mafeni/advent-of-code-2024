@@ -19,9 +19,26 @@ export function isSafe(arr: number[]): boolean {
   return true;
 }
 
+export function isSafePart2(arr: number[]): boolean {
+  if (isSafe(arr)) {
+    return true
+  }
+
+  for (let i = 0; i < arr.length; i++) {
+    const removed = arr.filter((_val, j) => i !== j)
+    if (isSafe(removed)) {
+      return true;
+    }
+  }
+  return false
+}
+
+
 if (import.meta.main) {
   const text = await Deno.readTextFile("input.txt");
   const rows = text.split("\n").map(line => line.split(" ").map(x => parseInt(x)))
   const safeCount = rows.reduce((acc, row) => acc + (isSafe(row) ? 1 : 0), 0)
-  console.log('Part 1 ', safeCount);
+  console.log('Part 1', safeCount);
+  const safeCount2 = rows.reduce((acc, row) => acc + (isSafePart2(row) ? 1 : 0), 0)
+  console.log('Part 2', safeCount2)
 }

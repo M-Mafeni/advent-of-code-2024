@@ -40,10 +40,37 @@ if (import.meta.main) {
   const [ruleText, pageText] = text.split("\r\n\r\n");
   const dict = parseDict(ruleText);
   const pages = parsePages(pageText);
-  const validPages = pages.filter((pageList) => isRightOrder(pageList, dict));
+  const invalidPages = [];
+  const validPages = [];
+  for (const pageList of pages) {
+    if (isRightOrder(pageList, dict)) {
+      validPages.push(pageList);
+    } else {
+      invalidPages.push(pageList);
+    }
+  }
+
   const middleCount = validPages.reduce(
     (acc, pageList) => acc + getMiddle(pageList),
     0,
   );
   console.log("Part 1:", middleCount);
+  invalidPages.forEach((values) => {
+    values.sort((a, b) => {
+      const beforeA = dict[b];
+      const beforeB = dict[a];
+      if (beforeA?.includes(a)) {
+        return -1;
+      } else if (beforeB?.includes(b)) {
+        return 1;
+      }
+      return 0;
+    });
+  });
+
+  const invalidMiddleCount = invalidPages.reduce(
+    (acc, pageList) => acc + getMiddle(pageList),
+    0,
+  );
+  console.log("Part 2:", invalidMiddleCount)
 }

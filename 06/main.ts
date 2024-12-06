@@ -1,6 +1,10 @@
 type Direction = "up" | "down" | "left" | "right";
-type Position = [number, number];
 type Grid = string[][];
+
+interface Position {
+  x: number;
+  y: number;
+}
 
 interface Guard {
   direction: Direction;
@@ -21,30 +25,29 @@ function turnRight(direction: Direction): Direction {
 }
 
 function advance(guard: Guard): Position {
-  const [x, y] = guard.position;
+  const {x, y} = guard.position;
   switch (guard.direction) {
     case "up":
-      return [x - 1, y];
+      return {x: x - 1, y};
     case "down":
-      return [x + 1, y];
+      return {x :x + 1, y};
     case "left":
-      return [x, y - 1];
+      return {x, y :y - 1};
     case "right":
-      return [x, y + 1];
+      return {x, y :y + 1};
   }
 }
 
 function inRange(guard: Guard, grid: Grid) {
-  const [x, y] = guard.position;
+  const {x, y} = guard.position;
   return x >= 0 && x < grid.length && y >= 0 && grid[0].length;
 }
 
 function moveGuard(guard: Guard, grid: string[][]) {
   while (inRange(guard, grid)) {
-    const [oldX, oldY] = guard.position;
-    grid[oldX][oldY] = "X";
+    grid[guard.position.x][guard.position.y] = "X";
     const nextPos = advance(guard);
-    const [x, y] = nextPos;
+    const {x, y} = nextPos;
     if (!(x >= 0 && x < grid.length && y >= 0 && grid[0].length)) {
       return;
     }
@@ -63,7 +66,7 @@ function getGuard(grid: string[][]): Guard {
     for (let y = 0; y < grid[0].length; y++) {
       if (grid[x][y] === "^") {
         grid[x][y] = "X";
-        return { position: [x, y], direction: "up" };
+        return { position: {x, y}, direction: "up" };
       }
     }
   }

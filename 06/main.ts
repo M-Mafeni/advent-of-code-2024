@@ -44,7 +44,7 @@ function advance(guard: Guard): Position {
 
 function inRange(guard: Guard, grid: Grid) {
   const { x, y } = guard.position;
-  return x >= 0 && x < grid.length && y >= 0 && grid[0].length;
+  return x >= 0 && x < grid.length && y >= 0 && y < grid[0].length;
 }
 
 function moveGuard(guard: Guard, grid: string[][]): [Guard[], Position[]] {

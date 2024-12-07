@@ -47,21 +47,15 @@ function inRange(guard: Guard, grid: Grid) {
   return x >= 0 && x < grid.length && y >= 0 && y < grid[0].length;
 }
 
-function moveGuard(guard: Guard, grid: string[][]): [Guard[], Position[]] {
-  const duplPositions: Position[] = [];
+function moveGuard(guard: Guard, grid: string[][]): Guard[] {
   const guardHistory: Guard[] = [];
   while (inRange(guard, grid)) {
-    if (
-      guardHistory.some((g) => equalPosition(g.position, guard.position))
-    ) {
-      duplPositions.push(guard.position);
-    }
     guardHistory.push({ ...guard });
     grid[guard.position.x][guard.position.y] = "X";
     const nextPos = advance(guard);
     const { x, y } = nextPos;
     if (!(x >= 0 && x < grid.length && y >= 0 && grid[0].length)) {
-      return [guardHistory, duplPositions];
+      return guardHistory;
     }
     if (grid[x][y] === "#") {
       const newDir = turnRight(guard.direction);
@@ -70,7 +64,7 @@ function moveGuard(guard: Guard, grid: string[][]): [Guard[], Position[]] {
       guard.position = nextPos;
     }
   }
-  return [guardHistory, duplPositions];
+  return guardHistory;
 }
 
 // @ts-ignore Guard is always defined
@@ -85,38 +79,69 @@ function getGuard(grid: string[][]): Guard {
   }
 }
 
-function runPart2(
-  history: Guard[],
-  seenPositions: Position[],
-) {
-  let cycleCount = 0;
-  for (const position of seenPositions) {
-    // @ts-ignore it's not undefined
-    const guard: Guard = history.find((g) =>
-      equalPosition(g.position, position)
+function moveGuard2(guard: Guard, grid: string[][]): Position | null {
+  const guardHistory: Guard[] = [];
+  const hasBeenSeen = (history: Guard[], g: Guard) =>
+    history.some((g1) =>
+      equalPosition(g.position, g1.position) && g.direction === g1.direction
     );
-    // Assume instead you turned right and advance one, Do you go to a previously seen position
-    const newDir = turnRight(guard.direction);
-    const newPos = advance({ ...guard, direction: newDir });
-    const possCycle = history.some((g) => equalPosition(g.position, newPos) && newDir === g.direction)
-    if (possCycle) {
-      cycleCount++;
+
+  while (inRange(guard, grid)) {
+    if (hasBeenSeen(guardHistory, guard)) {
+      return {...guard.position}
+    }
+    guardHistory.push ({ ...guard });
+    grid[guard.position.x][guard.position.y] = "X";
+    const nextPos = advance(guard);
+    const { x, y } = nextPos;
+    if (!(x >= 0 && x < grid.length && y >= 0 && grid[0].length)) {
+      return null;
+    }
+    if (grid[x][y] === "#") {
+      const newDir = turnRight(guard.direction);
+      guard.direction = newDir;
+    } else {
+      guard.position = nextPos;
     }
   }
-  return cycleCount;
+  return null;
+}
+
+function part2BruteForce(history: Guard[], text: string) {
+  const obstaclePositions = [];
+  for (let i = 1; i < history.length; i++) {
+    const grid = text.split("\r\n").map((line) => line.split(""));
+    const initGuard = {...history[0]};
+    // Make position guard was at an obstacle
+    const obstacle = history[i].position;
+    grid[obstacle.x][obstacle.y] = '#';
+    const cyclePos = moveGuard2(initGuard, grid);
+    if (cyclePos) {
+      obstaclePositions.push(obstacle);
+    }
+  }
+
+  const withoutDuplicates: Position[] = [];
+  for (const pos of obstaclePositions) {
+    if (!withoutDuplicates.some(p => equalPosition(p, pos))) {
+      withoutDuplicates.push(pos)
+    }
+  }
+
+  return withoutDuplicates;
 }
 
 if (import.meta.main) {
-  const text = await Deno.readTextFile(import.meta.dirname + "/test.txt");
-  const grid = text.split("\n").map((line) => line.split(""));
+  const text = await Deno.readTextFile(import.meta.dirname + "/input.txt");
+  const grid = text.split("\r\n").map((line) => line.split(""));
   const guard = getGuard(grid);
-  const [guardHistory, duplPositions] = moveGuard(guard, grid);
+  const guardHistory = moveGuard(guard, grid);
 
   const posCount = grid.reduce(
     (acc, row) => acc + row.filter((v) => v === "X").length,
     0,
   );
   console.log("Part 1:", posCount);
-  const cycleCount = runPart2(guardHistory, duplPositions);
-  console.log("Part 2:", cycleCount)
+  const cyclePositions = part2BruteForce(guardHistory, text);
+  console.log("Part 2:", cyclePositions.length);
 }

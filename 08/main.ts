@@ -40,6 +40,37 @@ function getAntinodes(antennas: Antenna[], max: Position): Position[] {
   return antiNodes;
 }
 
+function addToAntinodes(antinode: Position, antiNodes: Position[]) {
+  if (
+    !antiNodes.some((p) => p.x === antinode.x && p.y === antinode.y)
+  ) {
+    antiNodes.push({ ...antinode });
+  }
+}
+
+function getAntinodesPart2(antennas: Antenna[], max: Position): Position[] {
+  const antiNodes: Position[] = [];
+  for (let i = 0; i < antennas.length; i++) {
+    const antenna = antennas[i];
+    // count itself as antinode
+    addToAntinodes(antenna.position, antiNodes);
+    for (let j = 0; j < antennas.length; j++) {
+      const other = antennas[j];
+      if (i !== j && antenna.name === other.name) {
+        const antennaPos = antenna.position;
+        const [xDist, yDist] = getDistances(antennaPos, other.position);
+        const antinode = { x: antennaPos.x - xDist, y: antennaPos.y - yDist };
+        while (inRange(antinode, max)) {
+          addToAntinodes(antinode, antiNodes);
+          antinode.x -= xDist;
+          antinode.y -= yDist;
+        }
+      }
+    }
+  }
+  return antiNodes;
+}
+
 function getAntennas(grid: string[][]): Antenna[] {
   const antennas = [];
   const isAntenna = (c: string) => c !== ".";
@@ -54,11 +85,27 @@ function getAntennas(grid: string[][]): Antenna[] {
   return antennas;
 }
 
+// For debugging
+function printGrid(grid: string[][], antiNodes: Position[]) {
+  for (const antinode of antiNodes) {
+    if (grid[antinode.x][antinode.y] === ".") {
+      grid[antinode.x][antinode.y] = "#";
+    }
+  }
+
+  const text = grid.map((row) => row.join("")).join("\n");
+  console.log(text);
+}
+
 if (import.meta.main) {
-  const text = await Deno.readTextFile(import.meta.dirname + "/input.txt");
+  const text = await Deno.readTextFile(
+    import.meta.dirname + "/input.txt",
+  );
   const grid = text.split("\r\n").map((line) => line.split(""));
   const antennas = getAntennas(grid);
   const max = { x: grid.length - 1, y: grid[0].length - 1 };
   const antiNodes = getAntinodes(antennas, max);
   console.log("Part 1:", antiNodes.length);
+  const antiNodes2 = getAntinodesPart2(antennas, max);
+  console.log("Part 2:", antiNodes2.length);
 }

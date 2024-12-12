@@ -3,16 +3,14 @@ export function decompress(diskMap: string): number[] {
   let idCount = 0;
   const decompressed = [];
   for (const c of diskMap) {
-    const value = parseInt(c);
+    const count = parseInt(c);
     if (fileFlag) {
-      // const id = String(idCount).repeat(value);
-      const members = Array(value).fill(idCount);
-      decompressed.push(...members)
+      const members = Array(count).fill(idCount);
+      decompressed.push(...members);
       idCount += 1;
     } else {
-      // const freeSpace = ".".repeat(value);
-      const members = Array(value).fill(-1);
-      decompressed.push(...members)
+      const members = Array(count).fill(-1);
+      decompressed.push(...members);
     }
     fileFlag = !fileFlag;
   }
@@ -28,27 +26,28 @@ function isFreeSpace(x: number) {
 }
 
 export function reorder(arr: number[]): number[] {
-  let lastSeenLetter = arr.length - 1;
-  let freestAvailableSpace = 0;
-  while (freestAvailableSpace < lastSeenLetter) {
-    for (let i = lastSeenLetter; i >= 0; i--) {
-      if (isFile(arr[i])) {
-        for (let j = freestAvailableSpace; j < arr.length; j++) {
-          // Swap with freest available space
-          if (isFreeSpace(arr[j])) {
-            const temp = arr[i];
-            arr[i] = arr[j];
-            arr[j] = temp;
-            freestAvailableSpace = j + 1;
-            break;
-          }
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (isFile(arr[i])) {
+      for (let j = 0; j < i; j++) {
+        // Swap with freest available space
+        if (isFreeSpace(arr[j])) {
+          const temp = arr[i];
+          arr[i] = arr[j];
+          arr[j] = temp;
+          break;
         }
-        lastSeenLetter = i - 1;
-        break;
       }
     }
   }
   return arr;
+}
+
+function validList(list: number[]): boolean {
+  const freeSpaceCount = list.filter((x) => x === -1).length;
+  const index = list.length - freeSpaceCount;
+  const subList1 = list.slice(0, index);
+  const subList2 = list.slice(index);
+  return subList1.every(isFile) && subList2.every(isFreeSpace);
 }
 
 function calcCheckSum(reordered: number[]): number {
@@ -69,6 +68,5 @@ if (import.meta.main) {
   const reordered = reorder(decompressed);
   const checkSum = calcCheckSum(reordered);
 
-  // console.log("valid list", isSorted(reordered));
   console.log("Part 1:", checkSum);
 }

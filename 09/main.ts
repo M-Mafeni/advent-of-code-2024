@@ -81,7 +81,7 @@ function reorder2(arr: number[]): number[] {
       while (arr[start] === arr[i]) {
         start--;
       }
-      const blockLength = i - start; 
+      const blockLength = i - start;
       const blockStart = start + 1;
       swapWithFreeSpaceBlock(arr, blockLength, blockStart);
     }
@@ -115,8 +115,8 @@ function format(xs: number[]): string {
 }
 
 function prettyPrint(xs: number[]) {
-  const formatted = format(xs)
-  console.log(formatted)
+  const formatted = format(xs);
+  console.log(formatted);
 }
 
 if (import.meta.main) {
@@ -128,7 +128,6 @@ if (import.meta.main) {
 
   console.log("Part 1:", checkSum);
   const reordered2 = reorder2(decompress(text));
-  // current answer that's wrong 6289564621904
   const checkSum2 = calcCheckSum(reordered2);
   console.log("Part 2:", checkSum2);
 }

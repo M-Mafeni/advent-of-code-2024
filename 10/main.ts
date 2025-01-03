@@ -3,9 +3,11 @@ function runHelper(
   j: number,
   grid: number[][],
   positions: [number, number][],
+  distinct: boolean,
 ) {
   if (grid[i][j] === 9) {
-    const exists = positions.find((pos) => pos[0] === i && pos[1] === j);
+    const exists = !distinct &&
+      positions.find((pos) => pos[0] === i && pos[1] === j);
     if (!exists) {
       positions.push([i, j]);
     }
@@ -23,19 +25,19 @@ function runHelper(
     if (x >= 0 && x < grid.length && y >= 0 && y < grid[0].length) {
       const value = grid[x][y];
       if (value - grid[i][j] === 1) {
-        runHelper(x, y, grid, positions);
+        runHelper(x, y, grid, positions, distinct);
       }
     }
   });
 }
 
-function getTrailHeads(grid: number[][]) {
+function getTrailHeads(grid: number[][], distinct: boolean) {
   const allPositions: [number, number][] = [];
   for (let i = 0; i < grid.length; i++) {
     for (let j = 0; j < grid[0].length; j++) {
       if (grid[i][j] === 0) {
         const positions: [number, number][] = [];
-        runHelper(i, j, grid, positions);
+        runHelper(i, j, grid, positions, distinct);
         allPositions.push(...positions);
       }
     }
@@ -48,6 +50,8 @@ if (import.meta.main) {
   const grid = text.split("\n").map((line) =>
     line.split("").map((x) => parseInt(x, 10))
   );
-  const positions = getTrailHeads(grid);
+  const positions = getTrailHeads(grid, false);
   console.log("Part 1:", positions.length);
+  const distinctPos = getTrailHeads(grid, true);
+  console.log("Part 2:", distinctPos.length);
 }
